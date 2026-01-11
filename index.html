@@ -198,25 +198,32 @@
     }
 
     @media (max-width: 720px) {
-      .wrap { padding: 12px 10px; }
+      .wrap {
+        min-height: auto;
+        display: block;
+        padding: 8px 9px;
+      }
+      .card { margin: 0 auto; }
       .card { border-radius: 20px; box-shadow: 0 18px 50px rgba(0,0,0,0.55); }
-      .content { padding: 14px 12px 12px; }
-      .top { gap: 7px; padding-bottom: 10px; }
+      .content { padding: 10px 10px 10px; }
+      .top { gap: 5px; padding-bottom: 7px; }
 
       .badge { display: none; }
-      .avatar { width: 56px; height: 56px; }
+      .avatar { width: 44px; height: 44px; }
       .avatar::before { animation: none; opacity: 0.55; }
-      .name { font-size: 18px; }
-      .bio { font-size: 12.5px; }
+      .name { font-size: 16px; }
+      .bio { display: none; }
 
-      .copyGrid { gap: 6px; margin-top: 10px; }
-      .copyCard { border-radius: 14px; padding: 7px 10px; box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset, 0 8px 26px rgba(0,0,0,0.42); }
-      .copyLabel { font-size: 10px; }
-      .copyValue { font-size: 12px; }
-      .copyHint { padding: 6px 8px; font-size: 10px; }
+      .copyGrid { gap: 6px; margin-top: 7px; }
+      .copyCard { border-radius: 13px; padding: 6px 9px; box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset, 0 7px 22px rgba(0,0,0,0.40); }
+      .copyLabel { font-size: 9.5px; }
+      .copyValue { font-size: 11.5px; }
+      .copyHint { padding: 5px 7px; font-size: 9.5px; }
 
-      .links { gap: 9px; margin-top: 10px; }
-      .btn { padding: 10px 12px; border-radius: 14px; }
+      .toggleBtn { margin-top: 7px; padding: 8px 9px; font-size: 11.5px; }
+
+      .links { gap: 7px; margin-top: 8px; }
+      .btn { padding: 8px 10px; border-radius: 13px; }
       .arrow { font-size: 11px; padding: 5px 7px; }
       .footer { display: none; }
 
@@ -228,9 +235,10 @@
 
     @media (max-width: 420px) {
       .wrap { padding: 10px 10px; }
-      .content { padding: 12px 11px 11px; }
-      .avatar { width: 52px; height: 52px; }
-      .name { font-size: 17px; }
+      .content { padding: 10px 10px 10px; }
+      .avatar { width: 42px; height: 42px; }
+      .name { font-size: 15.5px; }
+      .sub { display: none; }
       .btn { grid-template-columns: 22px 1fr; }
       .arrow { display: none; }
       .copyHint { display: none; }
@@ -398,6 +406,25 @@
       grid-template-columns: 1fr;
       gap: 8px;
       margin-top: 14px;
+    }
+
+    .toggleBtn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(242,245,255,0.90);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .copyCard {
@@ -709,7 +736,7 @@
           <p class="bio" id="bio">
             Web3 / AI / cyber vibes. Neon links, clean UX. Meow in the matrix.
           </p>
-
+        
           <div class="copyGrid" id="copyGrid" aria-label="Copy cards"></div>
         </div>
 
@@ -828,6 +855,15 @@
       return node;
     }
 
+    let copiesExpanded = false;
+    const copiesToggle = document.getElementById("copiesToggle");
+    if (copiesToggle) {
+      copiesToggle.addEventListener("click", () => {
+        copiesExpanded = !copiesExpanded;
+        render();
+      });
+    }
+
     function render() {
       document.getElementById("statusText").textContent = TAPLINK.status;
       const displayName = document.getElementById("displayName");
@@ -840,7 +876,20 @@
 
       const copyRoot = document.getElementById("copyGrid");
       copyRoot.innerHTML = "";
-      if (Array.isArray(TAPLINK.copies) && TAPLINK.copies.length) {
+      const hasCopies = Array.isArray(TAPLINK.copies) && TAPLINK.copies.length;
+      const isMobile = window.matchMedia && window.matchMedia("(max-width: 720px)").matches;
+      const toggleEl = document.getElementById("copiesToggle");
+
+      if (!isMobile) copiesExpanded = true;
+      if (toggleEl) {
+        toggleEl.hidden = !(isMobile && hasCopies);
+        if (isMobile && hasCopies) {
+          toggleEl.children[1].textContent = copiesExpanded ? "▴" : "▾";
+        }
+      }
+      copyRoot.hidden = isMobile && hasCopies ? !copiesExpanded : false;
+
+      if (hasCopies) {
         for (const item of TAPLINK.copies) {
           const valueToCopy = (typeof item.copy === "string" && item.copy.length) ? item.copy : item.value;
           const btn = el(
