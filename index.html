@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>Cyber Cat Taplink</title>
+  <style>
+    :root {
+      --bg: #07070b;
+      --panel: rgba(10, 10, 16, 0.62);
+      --panel-2: rgba(8, 8, 14, 0.35);
+      --text: rgba(242, 245, 255, 0.92);
+      --muted: rgba(242, 245, 255, 0.62);
+      --line: rgba(255, 255, 255, 0.10);
+      --neon-cyan: #4df8ff;
+      --neon-pink: #ff3cf2;
+      --neon-purple: #b16cff;
+      --success: #37ff8b;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.65);
+      --radius: 26px;
+
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      overflow-x: hidden;
+    }
+
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 14px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.86), rgba(0,0,0,0.18));
+      border-bottom: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .topbarTitle {
+      font-family: var(--mono);
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(245, 248, 255, 0.95);
+      text-shadow:
+        0 1px 0 rgba(0,0,0,0.55),
+        0 0 22px rgba(77, 248, 255, 0.22),
+        0 0 22px rgba(255, 60, 242, 0.18);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: min(560px, calc(100vw - 44px));
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.38);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.25) inset;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      background:
+        radial-gradient(1100px 680px at 20% 10%, rgba(255, 60, 242, 0.14), transparent 60%),
+        radial-gradient(900px 560px at 80% 20%, rgba(77, 248, 255, 0.12), transparent 60%),
+        radial-gradient(1200px 900px at 50% 100%, rgba(177, 108, 255, 0.12), transparent 62%),
+        url("images/PC.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: saturate(1.12) contrast(1.06);
+      transform: translateZ(0);
+    }
+
+    @media (max-width: 720px) {
+      .bg {
+        background:
+          radial-gradient(760px 520px at 25% 10%, rgba(255, 60, 242, 0.16), transparent 62%),
+          radial-gradient(760px 520px at 80% 25%, rgba(77, 248, 255, 0.14), transparent 60%),
+          radial-gradient(960px 780px at 50% 105%, rgba(177, 108, 255, 0.12), transparent 65%),
+          url("images/Mobile.png");
+        background-size: cover;
+        background-position: center;
+      }
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(1200px 900px at 50% 30%, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.65) 70%),
+        linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.50));
+      pointer-events: none;
+    }
+
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.18;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.0) 0px,
+        rgba(255, 255, 255, 0.0) 3px,
+        rgba(255, 255, 255, 0.07) 4px
+      );
+      mix-blend-mode: overlay;
+      animation: scan 8s linear infinite;
+    }
+    @keyframes scan {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(32px); }
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.055;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+      background-size: 240px 240px;
+      mix-blend-mode: overlay;
+    }
+
+    .wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 42px 16px;
+    }
+
+    .card {
+      width: min(560px, 100%);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      background:
+        radial-gradient(500px 300px at 15% 15%, rgba(255, 60, 242, 0.22), transparent 60%),
+        radial-gradient(520px 320px at 90% 10%, rgba(77, 248, 255, 0.22), transparent 55%),
+        radial-gradient(520px 420px at 60% 105%, rgba(177, 108, 255, 0.18), transparent 62%);
+      filter: blur(14px);
+      opacity: 0.95;
+      pointer-events: none;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0,0,0,0.45), rgba(0,0,0,0.12));
+      pointer-events: none;
+    }
+
+    .content {
+      position: relative;
+      padding: 26px 22px 22px;
+    }
+
+    .top {
+      display: grid;
+      justify-items: center;
+      text-align: center;
+      gap: 10px;
+      padding-bottom: 18px;
+    }
+
+    @media (max-width: 720px) {
+      .wrap { padding: 18px 12px; }
+      .card { border-radius: 22px; }
+      .content { padding: 18px 14px 14px; }
+      .top { gap: 8px; padding-bottom: 12px; }
+
+      .badge { padding: 8px 10px; font-size: 11px; }
+      .avatar { width: 68px; height: 68px; }
+      .name { font-size: 20px; }
+      .bio { font-size: 13px; }
+
+      .copyGrid { gap: 7px; margin-top: 12px; }
+      .copyCard { border-radius: 16px; padding: 8px 10px; }
+      .copyValue { font-size: 12px; }
+      .copyHint { padding: 6px 9px; font-size: 10px; }
+
+      .links { gap: 10px; margin-top: 12px; }
+      .btn { padding: 11px 12px; border-radius: 16px; }
+      .arrow { font-size: 11px; padding: 5px 7px; }
+      .footer { margin-top: 14px; padding-top: 12px; font-size: 11px; }
+    }
+
+    @media (max-width: 420px) {
+      .wrap { padding: 14px 10px; }
+      .content { padding: 16px 12px 12px; }
+      .avatar { width: 62px; height: 62px; }
+      .name { font-size: 18px; }
+      .btn { grid-template-columns: 22px 1fr; }
+      .arrow { display: none; }
+      .footer { display: none; }
+    }
+
+    @media (max-width: 720px) {
+      .topbar { height: 48px; }
+      .topbarTitle { font-size: 13px; padding: 7px 12px; }
+    }
+
+    .wrap { padding-top: calc(42px + 54px); }
+
+    @media (max-width: 720px) {
+      .topbar { display: none; }
+      .wrap { padding-top: 18px; }
+    }
+
+    @media (max-width: 420px) {
+      .wrap { padding-top: 14px; }
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.20);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(242, 245, 255, 0.78);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+    }
+
+    .pulseDot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--success);
+      box-shadow: 0 0 0 0 rgba(55, 255, 139, 0.65);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(55, 255, 139, 0.75); }
+      70% { box-shadow: 0 0 0 14px rgba(55, 255, 139, 0.0); }
+      100% { box-shadow: 0 0 0 0 rgba(55, 255, 139, 0.0); }
+    }
+
+    .avatar {
+      width: 98px;
+      height: 98px;
+      border-radius: 999px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06) inset,
+        0 16px 60px rgba(0,0,0,0.55);
+      overflow: hidden;
+    }
+
+    .avatar::before {
+      content: "";
+      position: absolute;
+      inset: -40px;
+      background:
+        conic-gradient(from 180deg, rgba(77,248,255,0.0), rgba(77,248,255,0.35), rgba(255,60,242,0.22), rgba(177,108,255,0.25), rgba(77,248,255,0.0));
+      filter: blur(10px);
+      animation: spin 8s linear infinite;
+      opacity: 0.9;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .avatar svg {
+      position: relative;
+      width: 78px;
+      height: 78px;
+      filter:
+        drop-shadow(0 0 12px rgba(255, 60, 242, 0.50))
+        drop-shadow(0 0 18px rgba(77, 248, 255, 0.35));
+    }
+
+    .avatar img {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: translateZ(0);
+      filter:
+        saturate(1.08)
+        contrast(1.05)
+        drop-shadow(0 0 12px rgba(255, 60, 242, 0.25))
+        drop-shadow(0 0 18px rgba(77, 248, 255, 0.18));
+    }
+
+    .name {
+      font-size: 24px;
+      line-height: 1.1;
+      letter-spacing: 0.01em;
+      margin: 0;
+    }
+
+    .name .glitch {
+      position: relative;
+      display: inline-block;
+      text-transform: none;
+    }
+
+    .name .glitch::before,
+    .name .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      overflow: hidden;
+      pointer-events: none;
+      opacity: 0.0;
+    }
+
+    .name .glitch::before {
+      transform: translate(1px, 0);
+      color: rgba(77, 248, 255, 0.85);
+      text-shadow: 0 0 18px rgba(77, 248, 255, 0.35);
+    }
+    .name .glitch::after {
+      transform: translate(-1px, 0);
+      color: rgba(255, 60, 242, 0.85);
+      text-shadow: 0 0 18px rgba(255, 60, 242, 0.35);
+    }
+
+    .card:hover .name .glitch::before,
+    .card:hover .name .glitch::after {
+      animation: glitch 1.2s steps(2, end) infinite;
+      opacity: 0.55;
+    }
+
+    @keyframes glitch {
+      0% { clip-path: inset(0 0 92% 0); }
+      12% { clip-path: inset(10% 0 70% 0); }
+      24% { clip-path: inset(50% 0 28% 0); }
+      36% { clip-path: inset(0 0 75% 0); }
+      48% { clip-path: inset(65% 0 10% 0); }
+      60% { clip-path: inset(42% 0 35% 0); }
+      72% { clip-path: inset(15% 0 60% 0); }
+      84% { clip-path: inset(80% 0 5% 0); }
+      100% { clip-path: inset(0 0 92% 0); }
+    }
+
+    .bio {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.45;
+      color: var(--muted);
+      white-space: pre-line;
+      max-width: 46ch;
+    }
+
+    .copyGrid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .copyCard {
+      position: relative;
+      border-radius: 18px;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.20);
+      border: 1px solid rgba(255,255,255,0.14);
+      width: 100%;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06) inset,
+        0 10px 35px rgba(0,0,0,0.45);
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      text-align: left;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+    }
+
+    .copyCard::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(220px 120px at 20% 0%, rgba(77, 248, 255, 0.16), transparent 60%),
+        radial-gradient(220px 120px at 85% 100%, rgba(255, 60, 242, 0.14), transparent 58%);
+      opacity: 0;
+      transition: opacity 220ms ease;
+      pointer-events: none;
+    }
+
+    .copyCard:hover,
+    .copyCard:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.24);
+      background: rgba(0, 0, 0, 0.26);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.08) inset,
+        0 18px 50px rgba(0,0,0,0.55),
+        0 0 18px rgba(77, 248, 255, 0.14),
+        0 0 22px rgba(255, 60, 242, 0.10);
+    }
+
+    .copyCard:hover::before,
+    .copyCard:focus-visible::before { opacity: 1; }
+
+    .copyCard:active { transform: translateY(0) scale(0.99); }
+
+    .copyLabel {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.02em;
+      color: rgba(242, 245, 255, 0.60);
+    }
+
+    .copyMain {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+      flex: 1;
+    }
+
+    .copyValue {
+      margin-top: 0;
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 0.01em;
+      color: rgba(242, 245, 255, 0.90);
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .copyHint {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(242, 245, 255, 0.70);
+      margin-left: auto;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.22) inset;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%) translateY(14px);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 50;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.62);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 16px 60px rgba(0,0,0,0.55);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(242,245,255,0.86);
+      max-width: min(560px, calc(100vw - 28px));
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .links {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .btn {
+      position: relative;
+      display: grid;
+      grid-template-columns: 22px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 14px;
+      border-radius: 18px;
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid rgba(255,255,255,0.14);
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+      will-change: transform;
+      overflow: hidden;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg,
+          rgba(77, 248, 255, 0.0),
+          rgba(77, 248, 255, 0.16),
+          rgba(255, 60, 242, 0.14),
+          rgba(177, 108, 255, 0.12),
+          rgba(77, 248, 255, 0.0)
+        );
+      transform: translateX(-120%);
+      transition: transform 320ms ease;
+      mix-blend-mode: screen;
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    .btn::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: radial-gradient(360px 120px at 30% 0%, rgba(255, 60, 242, 0.20), transparent 60%),
+                  radial-gradient(360px 120px at 70% 100%, rgba(77, 248, 255, 0.18), transparent 58%);
+      opacity: 0;
+      transition: opacity 220ms ease;
+      pointer-events: none;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      transform: translateY(-1px) scale(1.01);
+      border-color: rgba(255,255,255,0.24);
+      background: rgba(0, 0, 0, 0.28);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.08) inset,
+        0 18px 50px rgba(0,0,0,0.55),
+        0 0 18px rgba(77, 248, 255, 0.16),
+        0 0 22px rgba(255, 60, 242, 0.12);
+    }
+
+    .btn:hover::before,
+    .btn:focus-visible::before { transform: translateX(0%); }
+
+    .btn:hover::after,
+    .btn:focus-visible::after { opacity: 1; }
+
+    .btn:active { transform: translateY(0) scale(0.99); }
+
+    .ico {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.25) inset;
+    }
+
+    .label {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .title {
+      font-weight: 650;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sub {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(242, 245, 255, 0.56);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .arrow {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(242, 245, 255, 0.60);
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.16);
+    }
+
+    .footer {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.10);
+      color: rgba(242, 245, 255, 0.52);
+      font-size: 12px;
+      font-family: var(--mono);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.18);
+    }
+
+    .chip b {
+      font-weight: 700;
+      color: rgba(242, 245, 255, 0.80);
+    }
+
+    .kbd {
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar" aria-label="Channel">
+    <div class="topbarTitle" id="topbarTitle">Shirlen</div>
+  </header>
+  <div class="bg" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <main class="wrap">
+    <section class="card" aria-label="Taplink">
+      <div class="content">
+        <div class="top">
+          <div class="badge" id="statusBadge">
+            <span class="pulseDot" aria-hidden="true"></span>
+            <span id="statusText">ONLINE / CYBER MODE</span>
+          </div>
+
+          <div class="avatar" aria-label="Avatar">
+            <img src="images/avaa.jpg" alt="Shirlen avatar" loading="eager" decoding="async" />
+          </div>
+
+          <h1 class="name">
+            <span class="glitch" id="displayName" data-text="shirlen.exe">shirlen.exe</span>
+          </h1>
+          <p class="bio" id="bio">
+            Web3 / AI / cyber vibes. Neon links, clean UX. Meow in the matrix.
+          </p>
+
+          <div class="copyGrid" id="copyGrid" aria-label="Copy cards"></div>
+        </div>
+
+        <nav class="links" id="links" aria-label="Links"></nav>
+
+        <div class="footer">
+          <span class="chip"><b id="footerLeft"></b>Рады видеть всех вас в нашем чате!<span class="kbd"></span></span>
+          <span id="footerRight">tap · hover · glow</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /**
+     * EDIT HERE: change texts + links in one place.
+     * Icons are simple inline SVG strings for performance.
+     */
+    const TAPLINK = {
+      status: "ONLINE ",
+      name: "Shirlen",
+      bio: "Приветики, мои сладкие❤️",
+      copies: [
+        { label: "Мой ID", value: "778808611" },
+        { label: "Каспи", value: "4400430234908124 — YELENA SHIRINYA", copy: "4400430234908124" },
+        { label: "РФ карта", value: "5599002088517174" },
+      ],
+      footerRight: "Ранг не важен — играю со всеми💞",
+      links: [
+        {
+          title: "TWITCH",
+          subtitle: "стримы",
+          url: "https://twitch.tv/your_channel",
+          icon: "twitch",
+          accent: "purple",
+        },
+        {
+          title: "TELEGRAM",
+          subtitle: "чат / связь",
+          url: "https://t.me/your_handle",
+          icon: "telegram",
+          accent: "cyan",
+        },
+        {
+          title: "ДОНАТИК",
+          subtitle: "поддержать",
+          url: "https://example.com/donate",
+          icon: "globe",
+          accent: "pink",
+        },
+      ],
+    };
+
+    const ICONS = {
+      twitch: `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 4h17v11l-5 5h-5l-3 2v-2H6V7L4 4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+          <path d="M10 10v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+          <path d="M15 10v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+        </svg>`,
+      telegram: `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M21.8 4.6c.3-1.4-1.1-2.4-2.4-1.9L3.6 8.8c-1.5.6-1.5 2.7.1 3.2l4.2 1.4 1.6 5.2c.4 1.3 2.1 1.7 3 0.7l2.5-2.6 4.3 3.2c1.1.8 2.6.2 2.9-1.1L21.8 4.6Z" stroke="currentColor" stroke-width="1.7" />
+          <path d="M8 13.3 19 6.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+        </svg>`,
+      instagram: `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M8 3h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5Z" stroke="currentColor" stroke-width="1.7" />
+          <path d="M12 16.2a4.2 4.2 0 1 0 0-8.4 4.2 4.2 0 0 0 0 8.4Z" stroke="currentColor" stroke-width="1.7" />
+          <path d="M17.6 6.6h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+        </svg>`,
+      x: `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 19 18 5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+          <path d="M6.7 5H10l7.3 14h-3.3L6.7 5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+        </svg>`,
+      link: `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+          <path d="M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 0 1-7-7l1-1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+        </svg>`,
+      mail: `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7h16v10H4V7Z" stroke="currentColor" stroke-width="1.7" />
+          <path d="M4.5 7.5 12 13l7.5-5.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>`,
+      globe: `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" stroke="currentColor" stroke-width="1.7" />
+          <path d="M3.6 12h16.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+          <path d="M12 3c2.7 2.5 4.2 5.7 4.2 9S14.7 18.5 12 21c-2.7-2.5-4.2-5.7-4.2-9S9.3 5.5 12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+        </svg>`,
+    };
+
+    function accentToColors(accent) {
+      switch (accent) {
+        case "pink":
+          return { a: "rgba(255, 60, 242, 0.35)", b: "rgba(255, 60, 242, 0.12)", c: "rgba(77, 248, 255, 0.08)" };
+        case "purple":
+          return { a: "rgba(177, 108, 255, 0.34)", b: "rgba(177, 108, 255, 0.12)", c: "rgba(255, 60, 242, 0.08)" };
+        case "cyan":
+        default:
+          return { a: "rgba(77, 248, 255, 0.34)", b: "rgba(77, 248, 255, 0.12)", c: "rgba(255, 60, 242, 0.08)" };
+      }
+    }
+
+    function el(tag, attrs = {}, children = []) {
+      const node = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) {
+        if (k === "class") node.className = v;
+        else if (k === "html") node.innerHTML = v;
+        else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2), v);
+        else node.setAttribute(k, v);
+      }
+      for (const child of children) node.appendChild(child);
+      return node;
+    }
+
+    function render() {
+      document.getElementById("statusText").textContent = TAPLINK.status;
+      const displayName = document.getElementById("displayName");
+      displayName.textContent = TAPLINK.name;
+      displayName.setAttribute("data-text", TAPLINK.name);
+      document.getElementById("topbarTitle").textContent = TAPLINK.name;
+      document.getElementById("bio").textContent = TAPLINK.bio;
+      document.getElementById("footerLeft").textContent = TAPLINK.footerLeft || document.getElementById("footerLeft").textContent || "";
+      document.getElementById("footerRight").textContent = TAPLINK.footerRight;
+
+      const copyRoot = document.getElementById("copyGrid");
+      copyRoot.innerHTML = "";
+      if (Array.isArray(TAPLINK.copies) && TAPLINK.copies.length) {
+        for (const item of TAPLINK.copies) {
+          const valueToCopy = (typeof item.copy === "string" && item.copy.length) ? item.copy : item.value;
+          const btn = el(
+            "button",
+            {
+              class: "copyCard",
+              type: "button",
+              "aria-label": `Copy ${item.label}`,
+            },
+            [
+              el("div", { class: "copyMain" }, [
+                el("div", { class: "copyLabel" }, [document.createTextNode(item.label)]),
+                el("div", { class: "copyValue" }, [document.createTextNode(item.value)]),
+              ]),
+              el("div", { class: "copyHint" }, [document.createTextNode("COPY")]),
+            ]
+          );
+          btn.addEventListener("click", async () => {
+            await copyText(valueToCopy);
+            showToast(`Скопировано: ${item.label}`);
+          });
+          copyRoot.appendChild(btn);
+        }
+      }
+
+      const linksRoot = document.getElementById("links");
+      linksRoot.innerHTML = "";
+
+      for (const item of TAPLINK.links) {
+        const colors = accentToColors(item.accent);
+        const a = el(
+          "a",
+          {
+            class: "btn",
+            href: item.url,
+            target: item.url.startsWith("http") ? "_blank" : "_self",
+            rel: item.url.startsWith("http") ? "noopener noreferrer" : "",
+            "aria-label": item.title,
+            style: `box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset, 0 10px 35px rgba(0,0,0,0.45); --accA: ${colors.a}; --accB: ${colors.b}; --accC: ${colors.c};`,
+          },
+          [
+            el("span", { class: "ico", style: `color: rgba(242,245,255,0.9); box-shadow: 0 0 0 1px rgba(0,0,0,0.25) inset, 0 0 18px ${colors.b}; border-color: rgba(255,255,255,0.12);` , html: (ICONS[item.icon] || ICONS.link).trim() }),
+            el("span", { class: "label" }, [
+              el("span", { class: "title" , }, [document.createTextNode(item.title)]),
+              el("span", { class: "sub" }, [document.createTextNode(item.subtitle || "")]),
+            ]),
+            el("span", { class: "arrow" }, [document.createTextNode("→")]),
+          ]
+        );
+
+        // Add per-button accent wash (subtle, cheap)
+        a.addEventListener("pointermove", (e) => {
+          const rect = a.getBoundingClientRect();
+          const x = ((e.clientX - rect.left) / rect.width) * 100;
+          const y = ((e.clientY - rect.top) / rect.height) * 100;
+          a.style.background = `radial-gradient(220px 140px at ${x}% ${y}%, var(--accA), rgba(0,0,0,0.22) 65%)`;
+        });
+        a.addEventListener("pointerleave", () => {
+          a.style.background = "rgba(0, 0, 0, 0.22)";
+        });
+
+        linksRoot.appendChild(a);
+      }
+    }
+
+    async function copyText(text) {
+      try {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      } catch (_) {
+        // fall through
+      }
+
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        ta.style.top = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        return ok;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    let toastTimer = null;
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      if (toastTimer) window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove("show"), 1700);
+    }
+
+    render();
+  </script>
+</body>
+</html>
